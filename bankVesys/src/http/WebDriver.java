@@ -30,12 +30,14 @@ public class WebDriver implements BankDriver {
 	@Override
 	public void connect(String[] args) throws IOException {
 
-		s = new Socket(args[0], Integer.parseInt(args[1]));
 		bank = new Bank();
-		url = new URL("http://localhost:8080/commands");
+		url = new URL("http://" + args[0] + ":" + Integer.parseInt(args[1]) + "/commands");
 		urlCon = (HttpURLConnection) url.openConnection();
+		urlCon.setRequestMethod("POST");
 		urlCon.setDoOutput(true); // to be able to write.
 		urlCon.setDoInput(true); // to be able to read.
+		urlCon.connect();
+		System.out.println("Connected");
 
 		oos = new ObjectOutputStream(urlCon.getOutputStream());
 		ois = new ObjectInputStream(urlCon.getInputStream());
@@ -44,7 +46,7 @@ public class WebDriver implements BankDriver {
 	@Override
 	public void disconnect() throws IOException {
 		oos.writeObject(null);
-		s.close();
+		urlCon.disconnect();
 		System.out.println("disconnected.");
 	}
 
@@ -77,23 +79,23 @@ public class WebDriver implements BankDriver {
 		@Override
 		public String createAccount(String owner) {
 			String accountNumber = null;
-//			try {
-				// Basic setup
-//				oos = new ObjectOutputStream(urlCon.getOutputStream());
-//				oos.writeObject(new CreateAccount(owner));
-//				oos.close();
-//
-//				ObjectInputStream ois = new ObjectInputStream(urlCon.getInputStream());
-//				accountNumber = (String) ois.readObject();
-//				accounts.put(accountNumber, new Account(accountNumber));
-//				oos.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//
-//			catch (ClassNotFoundException ex) {
-//				ex.printStackTrace();
-//			}
+			try {
+//				Basic setup for Webcommunication
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				oos.writeObject(new CreateAccount(owner));
+				oos.close();
+
+				ObjectInputStream ois = new ObjectInputStream(urlCon.getInputStream());
+				accountNumber = (String) ois.readObject();
+				accounts.put(accountNumber, new Account(accountNumber));
+				oos.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			catch (ClassNotFoundException ex) {
+				ex.printStackTrace();
+			}
 			return accountNumber;
 		}
 
