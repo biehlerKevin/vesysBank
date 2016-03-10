@@ -5,6 +5,7 @@ import bank.Request.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.util.HashMap;
@@ -18,205 +19,217 @@ import java.util.stream.Collectors;
  */
 public class WebDriver implements BankDriver {
 
-    Socket s;
-    Bank bank;
-    URL url;
-    HttpURLConnection urlCon;
+	Socket s;
+	Bank bank;
+	URL url;
+	HttpURLConnection urlCon;
 
-    ObjectOutputStream oos;
-    ObjectInputStream ois;
+	ObjectOutputStream oos;
+	ObjectInputStream ois;
 
-    @Override
-    public void connect(String[] args) throws IOException {
+	@Override
+	public void connect(String[] args) throws IOException {
 
-        s = new Socket(args[0], Integer.parseInt(args[1]));
-        bank = new Bank();
-        url = new URL("http://localhost:8080/commands");
-        urlCon = (HttpURLConnection) url.openConnection();
-        urlCon.setDoOutput(true); // to be able to write.
-        urlCon.setDoInput(true); // to be able to read.
+		s = new Socket(args[0], Integer.parseInt(args[1]));
+		bank = new Bank();
+		url = new URL("http://localhost:8080/commands");
+		urlCon = (HttpURLConnection) url.openConnection();
+		urlCon.setDoOutput(true); // to be able to write.
+		urlCon.setDoInput(true); // to be able to read.
 
-        oos = new ObjectOutputStream(urlCon.getOutputStream());
-        ois = new ObjectInputStream(urlCon.getInputStream());
-    }
+		oos = new ObjectOutputStream(urlCon.getOutputStream());
+		ois = new ObjectInputStream(urlCon.getInputStream());
+	}
 
-    @Override
-    public void disconnect() throws IOException {
-        oos.writeObject(null);
-        s.close();
-        System.out.println("disconnected.");
-    }
+	@Override
+	public void disconnect() throws IOException {
+		oos.writeObject(null);
+		s.close();
+		System.out.println("disconnected.");
+	}
 
-    @Override
-    public Bank getBank() {
-        return bank;
-    }
+	@Override
+	public Bank getBank() {
+		return bank;
+	}
 
-    class Bank implements bank.Bank {
+	class Bank implements bank.Bank {
 
-        private final Map<String, Account> accounts = new HashMap<>();
+		private final Map<String, Account> accounts = new HashMap<>();
 
+		@Override
+		public Set<String> getAccountNumbers() {
+			Set<String> accountNumbers = null;
+			try {
+				oos.writeObject(new GetAccountNumbers());
+				accountNumbers = (Set<String>) ois.readObject();
+				for (String accountNumber : accountNumbers) {
+					if (!accounts.containsKey(accountNumber)) {
+						accounts.put(accountNumber, new Account(accountNumber));
+					}
+				}
+			} catch (IOException | ClassNotFoundException ex) {
 
-        @Override
-        public Set<String> getAccountNumbers() {
-            Set<String> accountNumbers = null;
-            try{
-                oos.writeObject(new GetAccountNumbers());
-                accountNumbers = (Set<String>)ois.readObject();
-                for(String accountNumber:accountNumbers){
-                    if(!accounts.containsKey(accountNumber)){
-                        accounts.put(accountNumber,new Account(accountNumber));
-                    }
-                }
-            }catch(IOException | ClassNotFoundException ex){
+			}
+			return accountNumbers;
+		}
 
-            }
-            return accountNumbers;
-        }
+		@Override
+		public String createAccount(String owner) {
+			String accountNumber = null;
+//			try {
+				// Basic setup
+//				oos = new ObjectOutputStream(urlCon.getOutputStream());
+//				oos.writeObject(new CreateAccount(owner));
+//				oos.close();
+//
+//				ObjectInputStream ois = new ObjectInputStream(urlCon.getInputStream());
+//				accountNumber = (String) ois.readObject();
+//				accounts.put(accountNumber, new Account(accountNumber));
+//				oos.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//
+//			catch (ClassNotFoundException ex) {
+//				ex.printStackTrace();
+//			}
+			return accountNumber;
+		}
 
-        @Override
-        public String createAccount(String owner) {
-            String accountNumber = null;
-            try{
-                oos.writeObject(new CreateAccount(owner));
-                accountNumber = (String)ois.readObject();
-                accounts.put(accountNumber, new Account(accountNumber));
-            }catch(IOException | ClassNotFoundException ex){
+		@Override
+		public boolean closeAccount(String number) {
+			Boolean success = false;
+			try {
+				oos.writeObject(new CloseAccount(number));
+				success = (Boolean) ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-            }
-            return accountNumber;
-        }
+			}
+			return success;
+		}
 
-        @Override
-        public boolean closeAccount(String number) {
-            Boolean success = false;
-            try{
-                oos.writeObject(new CloseAccount(number));
-                success = (Boolean)ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+		@Override
+		public bank.Account getAccount(String number) {
+			return accounts.get(number);
+		}
 
-            }
-            return success;
-        }
+		@Override
+		public void transfer(bank.Account from, bank.Account to, double amount)
+				throws IOException, InactiveException, OverdrawException, IllegalArgumentException {
 
-        @Override
-        public bank.Account getAccount(String number) {
-            return accounts.get(number);
-        }
+			if (amount < 0)
+				throw new IllegalArgumentException();
 
-        @Override
-        public void transfer(bank.Account from, bank.Account to, double amount)
-                throws IOException, InactiveException, OverdrawException, IllegalArgumentException {
+			Object response = null;
+			try {
+				oos.writeObject(new Transfer(from.getNumber(), to.getNumber(), amount));
+				response = ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-            if(amount < 0) throw new IllegalArgumentException();
+			}
+			if (response != null) {
+				if (response instanceof OverdrawException) {
+					throw (OverdrawException) response;
+				} else if (response instanceof InactiveException) {
+					throw (InactiveException) response;
+				}
+			}
+		}
+	}
 
-            Object response = null;
-            try{
-                oos.writeObject(new Transfer(from.getNumber(), to.getNumber(), amount));
-                response = ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+	class Account implements bank.Account {
+		private String number;
 
-            }
-            if(response != null){
-                if(response instanceof OverdrawException){
-                    throw (OverdrawException)response;
-                }else if(response instanceof InactiveException){
-                    throw (InactiveException)response;
-                }
-            }
-        }
-    }
+		Account(String number) {
+			this.number = number;
+		}
 
-    class Account implements bank.Account {
-        private String number;
+		@Override
+		public double getBalance() {
+			Object response = null;
+			try {
+				oos.writeObject(new GetBalance(number));
+				response = ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-        Account(String number) {
-            this.number = number;
-        }
+			}
 
-        @Override
-        public double getBalance() {
-            Object response = null;
-            try{
-                oos.writeObject(new GetBalance(number));
-                response = ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+			if (response instanceof Double) {
+				return (Double) response;
+			}
+			return 0;
+		}
 
-            }
+		@Override
+		public String getOwner() {
+			Object response = null;
+			try {
+				oos.writeObject(new GetOwner(number));
+				response = ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-            if(response instanceof Double){
-                return (Double)response;
-            }
-            return 0;
-        }
+			}
+			return (String) response;
+		}
 
-        @Override
-        public String getOwner() {
-            Object response = null;
-            try{
-                oos.writeObject(new GetOwner(number));
-                response = ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+		@Override
+		public String getNumber() {
+			return number;
+		}
 
-            }
-            return (String)response;
-        }
+		@Override
+		public boolean isActive() {
+			Object response = null;
+			try {
+				oos.writeObject(new IsActive(number));
+				response = ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-        @Override
-        public String getNumber() {
-            return number;
-        }
+			}
+			if (response instanceof Boolean) {
+				return (Boolean) response;
+			}
+			return false;
+		}
 
-        @Override
-        public boolean isActive() {
-            Object response = null;
-            try{
-                oos.writeObject(new IsActive(number));
-                response = ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+		@Override
+		public void deposit(double amount) throws InactiveException {
+			if (amount < 0)
+				return;
 
-            }
-            if(response instanceof Boolean){
-                return (Boolean)response;
-            }
-            return false;
-        }
+			Object response = null;
+			try {
+				oos.writeObject(new Deposit(number, amount));
+				response = ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-        @Override
-        public void deposit(double amount) throws InactiveException {
-            if(amount < 0) return;
+			}
 
-            Object response = null;
-            try{
-                oos.writeObject(new Deposit(number, amount));
-                response = ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+			if (response instanceof InactiveException) {
+				throw (InactiveException) response;
+			}
+		}
 
-            }
+		@Override
+		public void withdraw(double amount) throws InactiveException, OverdrawException {
+			if (amount < 0)
+				return;
 
-            if(response instanceof InactiveException){
-                throw (InactiveException)response;
-            }
-        }
+			Object response = null;
+			try {
+				oos.writeObject(new Withdraw(number, amount));
+				response = ois.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
 
-        @Override
-        public void withdraw(double amount) throws InactiveException, OverdrawException {
-            if(amount < 0) return;
+			}
 
-            Object response = null;
-            try{
-                oos.writeObject(new Withdraw(number, amount));
-                response = ois.readObject();
-            }catch(IOException | ClassNotFoundException ex){
+			if (response instanceof InactiveException) {
+				throw (InactiveException) response;
+			} else if (response instanceof OverdrawException) {
+				throw (OverdrawException) response;
+			}
+		}
 
-            }
-
-            if(response instanceof InactiveException){
-                throw (InactiveException)response;
-            }else if(response instanceof OverdrawException){
-                throw (OverdrawException)response;
-            }
-        }
-
-    }
+	}
 }
