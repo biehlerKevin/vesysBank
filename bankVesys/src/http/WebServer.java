@@ -33,7 +33,7 @@ public class WebServer {
         driver.connect(null);
         Bank bank = driver.getBank();
 		
-		HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+		HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
 		server.createContext("/bank", new MyHandler(bank));
 		server.start();
 

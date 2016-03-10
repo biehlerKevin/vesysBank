@@ -31,7 +31,7 @@ public class WebDriver implements BankDriver {
 	public void connect(String[] args) throws IOException {
 
 		bank = new Bank();
-		url = new URL("http://localhost:8080/bank");
+		url = new URL("http://localhost:80/bank");
 		urlCon = (HttpURLConnection) url.openConnection();
 		urlCon.setRequestMethod("POST");
 		urlCon.setDoOutput(true); // to be able to write.
@@ -83,12 +83,10 @@ public class WebDriver implements BankDriver {
 //				Basic setup for Webcommunication
 				oos = new ObjectOutputStream(urlCon.getOutputStream());
 				oos.writeObject(new CreateAccount(owner));
-				oos.close();
 
 				ObjectInputStream ois = new ObjectInputStream(urlCon.getInputStream());
 				accountNumber = (String) ois.readObject();
 				accounts.put(accountNumber, new Account(accountNumber));
-				oos.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
