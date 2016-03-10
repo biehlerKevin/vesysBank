@@ -34,7 +34,7 @@ public class WebServer {
         Bank bank = driver.getBank();
 		
 		HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-		server.createContext("/commands", new MyHandler(bank));
+		server.createContext("/bank", new MyHandler(bank));
 		server.start();
 
 	}

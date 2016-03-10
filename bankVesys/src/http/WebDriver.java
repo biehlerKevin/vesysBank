@@ -31,7 +31,7 @@ public class WebDriver implements BankDriver {
 	public void connect(String[] args) throws IOException {
 
 		bank = new Bank();
-		url = new URL("http://localhost:8080/commands");
+		url = new URL("http://localhost:8080/bank");
 		urlCon = (HttpURLConnection) url.openConnection();
 		urlCon.setRequestMethod("POST");
 		urlCon.setDoOutput(true); // to be able to write.
