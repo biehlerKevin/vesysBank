@@ -24,12 +24,13 @@ import bank.Request.IsActive;
 import bank.Request.Request;
 import bank.Request.Transfer;
 import bank.Request.Withdraw;
+import bank.local.Driver;
 
 public class WebServer {
 
 	public static void main(String args[]) throws IOException {
 
-        WebDriver driver = new WebDriver();
+        Driver driver = new Driver();
         driver.connect(null);
         Bank bank = driver.getBank();
 		
@@ -44,7 +45,7 @@ public class WebServer {
 		Bank bank;
 		
 		public MyHandler(Bank b){
-			this.bank = bank;
+			this.bank = b;
 		}
 		
 		
