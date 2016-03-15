@@ -39,8 +39,9 @@ public class WebDriver implements BankDriver {
 		urlCon.connect();
 		System.out.println("Connected");
 
-		oos = new ObjectOutputStream(urlCon.getOutputStream());
 		ois = new ObjectInputStream(urlCon.getInputStream());
+		oos = new ObjectOutputStream(urlCon.getOutputStream());
+
 	}
 
 	@Override
