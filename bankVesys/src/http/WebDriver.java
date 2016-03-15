@@ -40,7 +40,10 @@ public class WebDriver implements BankDriver {
 		System.out.println("Connected");
 
 		ois = new ObjectInputStream(urlCon.getInputStream());
+		System.out.println("InputStream Server");
 		oos = new ObjectOutputStream(urlCon.getOutputStream());
+		System.out.println("OutputStream Server");
+
 
 	}
 
@@ -82,10 +85,8 @@ public class WebDriver implements BankDriver {
 			String accountNumber = null;
 			try {
 //				Basic setup for Webcommunication
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
 				oos.writeObject(new CreateAccount(owner));
 
-				ObjectInputStream ois = new ObjectInputStream(urlCon.getInputStream());
 				accountNumber = (String) ois.readObject();
 				accounts.put(accountNumber, new Account(accountNumber));
 			} catch (IOException e) {
