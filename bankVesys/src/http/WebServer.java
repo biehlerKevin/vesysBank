@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -34,15 +35,19 @@ public class WebServer {
         driver.connect(null);
         Bank bank = driver.getBank();
 		
-		HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
+		HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 		server.createContext("/bank", new MyHandler(bank));
+		server.setExecutor(Executors.newCachedThreadPool());
 		server.start();
+		System.out.println("Server listening on port 8080");
 
 	}
 
 	static class MyHandler implements HttpHandler {
 
 		Bank bank;
+		ObjectOutputStream oos;
+        ObjectInputStream ois;
 		
 		public MyHandler(Bank b){
 			this.bank = b;
@@ -51,8 +56,10 @@ public class WebServer {
 		
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
-			ObjectOutputStream oos = new ObjectOutputStream(exchange.getResponseBody());
-            ObjectInputStream ois = new ObjectInputStream(exchange.getRequestBody());
+			oos = new ObjectOutputStream(exchange.getResponseBody());
+			System.out.println("Opened Handler outputstream");
+            ois = new ObjectInputStream(exchange.getRequestBody());
+			System.out.println("Opened Handler inputstream");
 
 
             Object request;
