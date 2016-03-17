@@ -56,10 +56,14 @@ public class WebServer {
 		
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
-			oos = new ObjectOutputStream(exchange.getResponseBody());
-			System.out.println("Opened Handler outputstream");
+
+		    String respHeader = "Hello bank!\n";
+		    exchange.sendResponseHeaders(200, respHeader.length());
+			
             ois = new ObjectInputStream(exchange.getRequestBody());
 			System.out.println("Opened Handler inputstream");
+			oos = new ObjectOutputStream(exchange.getResponseBody());
+			System.out.println("Opened Handler outputstream");
 
 
             Object request;

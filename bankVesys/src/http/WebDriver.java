@@ -39,10 +39,11 @@ public class WebDriver implements BankDriver {
 		urlCon.connect();
 		System.out.println("Client connected");
 
-		ois = new ObjectInputStream(urlCon.getInputStream());
-		System.out.println("InputStream Server");
+
 		oos = new ObjectOutputStream(urlCon.getOutputStream());
-		System.out.println("OutputStream Server");
+		System.out.println("OutputStream Client");
+		ois = new ObjectInputStream(urlCon.getInputStream());
+		System.out.println("InputStream Client");
 
 
 	}
