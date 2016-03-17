@@ -40,10 +40,14 @@ public class WebDriver implements BankDriver {
 		System.out.println("Client connected");
 
 
+		try{
 		oos = new ObjectOutputStream(urlCon.getOutputStream());
 		System.out.println("OutputStream Client");
 		ois = new ObjectInputStream(urlCon.getInputStream());
 		System.out.println("InputStream Client");
+		} catch(IOException e){
+			
+		}
 
 
 	}
@@ -66,6 +70,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public Set<String> getAccountNumbers() {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			Set<String> accountNumbers = null;
 			try {
 				oos.writeObject(new GetAccountNumbers());
@@ -83,6 +95,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public String createAccount(String owner) {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			String accountNumber = null;
 			try {
 				oos.writeObject(new CreateAccount(owner));
@@ -100,6 +120,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public boolean closeAccount(String number) {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			Boolean success = false;
 			try {
 				oos.writeObject(new CloseAccount(number));
@@ -118,7 +146,14 @@ public class WebDriver implements BankDriver {
 		@Override
 		public void transfer(bank.Account from, bank.Account to, double amount)
 				throws IOException, InactiveException, OverdrawException, IllegalArgumentException {
-
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			if (amount < 0)
 				throw new IllegalArgumentException();
 
@@ -148,6 +183,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public double getBalance() {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			Object response = null;
 			try {
 				oos.writeObject(new GetBalance(number));
@@ -164,6 +207,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public String getOwner() {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			Object response = null;
 			try {
 				oos.writeObject(new GetOwner(number));
@@ -181,6 +232,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public boolean isActive() {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			Object response = null;
 			try {
 				oos.writeObject(new IsActive(number));
@@ -196,6 +255,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public void deposit(double amount) throws InactiveException {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			if (amount < 0)
 				return;
 
@@ -214,6 +281,14 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public void withdraw(double amount) throws InactiveException, OverdrawException {
+			try{
+				oos = new ObjectOutputStream(urlCon.getOutputStream());
+				System.out.println("OutputStream Client");
+				ois = new ObjectInputStream(urlCon.getInputStream());
+				System.out.println("InputStream Client");
+				} catch(IOException e){
+					
+				}
 			if (amount < 0)
 				return;
 
