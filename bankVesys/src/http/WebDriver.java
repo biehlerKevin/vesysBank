@@ -32,23 +32,6 @@ public class WebDriver implements BankDriver {
 
 		bank = new Bank();
 		url = new URL("http://localhost:8080/bank");
-		urlCon = (HttpURLConnection) url.openConnection();
-		urlCon.setRequestMethod("POST");
-		urlCon.setDoOutput(true); // to be able to write.
-		urlCon.setDoInput(true); // to be able to read.
-		urlCon.connect();
-		System.out.println("Client connected");
-
-
-		try{
-		oos = new ObjectOutputStream(urlCon.getOutputStream());
-		System.out.println("OutputStream Client");
-		ois = new ObjectInputStream(urlCon.getInputStream());
-		System.out.println("InputStream Client");
-		} catch(IOException e){
-			
-		}
-
 
 	}
 
@@ -57,6 +40,30 @@ public class WebDriver implements BankDriver {
 		oos.writeObject(null);
 		urlCon.disconnect();
 		System.out.println("disconnected.");
+	}
+
+	public Object makeRequest(Request request){
+		Object response = null;
+		try{
+			urlCon = (HttpURLConnection) url.openConnection();
+			urlCon.setRequestMethod("POST");
+			urlCon.setDoOutput(true); // to be able to write.
+			urlCon.setDoInput(true); // to be able to read.
+			urlCon.connect();
+
+			oos = new ObjectOutputStream(urlCon.getOutputStream());
+			oos.writeObject(request);
+			oos.close();
+
+			ois = new ObjectInputStream(urlCon.getInputStream());
+			response = ois.readObject();
+			ois.close();
+
+		} catch(ClassNotFoundException | IOException e){
+			e.printStackTrace();
+		}
+
+		return response;
 	}
 
 	@Override
@@ -70,72 +77,26 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public Set<String> getAccountNumbers() {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
+			Set<String> response = (Set<String>)makeRequest(new GetAccountNumbers());
+			response.forEach(e->{
+				if(!accounts.containsKey(e)){
+					accounts.put(e, new Account(e));
 				}
-			Set<String> accountNumbers = null;
-			try {
-				oos.writeObject(new GetAccountNumbers());
-				accountNumbers = (Set<String>) ois.readObject();
-				for (String accountNumber : accountNumbers) {
-					if (!accounts.containsKey(accountNumber)) {
-						accounts.put(accountNumber, new Account(accountNumber));
-					}
-				}
-			} catch (IOException | ClassNotFoundException ex) {
-
-			}
-			return accountNumbers;
+			});
+			return response;
 		}
 
 		@Override
 		public String createAccount(String owner) {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			String accountNumber = null;
-			try {
-				oos.writeObject(new CreateAccount(owner));
-				accountNumber = (String) ois.readObject();
-				accounts.put(accountNumber, new Account(accountNumber));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			String accountNumber = (String)makeRequest(new CreateAccount(owner));
+			accounts.put(accountNumber, new Account(accountNumber, owner));
 
-			catch (ClassNotFoundException ex) {
-				ex.printStackTrace();
-			}
 			return accountNumber;
 		}
 
 		@Override
 		public boolean closeAccount(String number) {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			Boolean success = false;
-			try {
-				oos.writeObject(new CloseAccount(number));
-				success = (Boolean) ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
-
-			}
-			return success;
+			return (Boolean) makeRequest(new CloseAccount(number));
 		}
 
 		@Override
@@ -146,29 +107,17 @@ public class WebDriver implements BankDriver {
 		@Override
 		public void transfer(bank.Account from, bank.Account to, double amount)
 				throws IOException, InactiveException, OverdrawException, IllegalArgumentException {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			if (amount < 0)
-				throw new IllegalArgumentException();
+			Object response = makeRequest(new Transfer(from.getNumber(), to.getNumber(), amount));
 
-			Object response = null;
-			try {
-				oos.writeObject(new Transfer(from.getNumber(), to.getNumber(), amount));
-				response = ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
+			if(amount < 0) throw new IllegalArgumentException();
 
-			}
 			if (response != null) {
 				if (response instanceof OverdrawException) {
 					throw (OverdrawException) response;
 				} else if (response instanceof InactiveException) {
 					throw (InactiveException) response;
+				}else if (response instanceof IllegalArgumentException) {
+					throw (IllegalArgumentException) response;
 				}
 			}
 		}
@@ -176,28 +125,20 @@ public class WebDriver implements BankDriver {
 
 	class Account implements bank.Account {
 		private String number;
+		private String owner;
 
 		Account(String number) {
 			this.number = number;
 		}
 
+		Account(String number, String owner) {
+			this.number = number;
+			this.owner = owner;
+		}
+
 		@Override
 		public double getBalance() {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			Object response = null;
-			try {
-				oos.writeObject(new GetBalance(number));
-				response = ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
-
-			}
+			Object response = makeRequest(new GetBalance(number));
 
 			if (response instanceof Double) {
 				return (Double) response;
@@ -207,22 +148,11 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public String getOwner() {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			Object response = null;
-			try {
-				oos.writeObject(new GetOwner(number));
-				response = ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
-
+			if(owner == null){
+				owner = (String)makeRequest(new GetOwner(number));
 			}
-			return (String) response;
+
+			return owner;
 		}
 
 		@Override
@@ -232,47 +162,13 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public boolean isActive() {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			Object response = null;
-			try {
-				oos.writeObject(new IsActive(number));
-				response = ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
-
-			}
-			if (response instanceof Boolean) {
-				return (Boolean) response;
-			}
-			return false;
+			return (Boolean)makeRequest(new IsActive(number));
 		}
 
 		@Override
 		public void deposit(double amount) throws InactiveException {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			if (amount < 0)
-				return;
 
-			Object response = null;
-			try {
-				oos.writeObject(new Deposit(number, amount));
-				response = ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
-
-			}
+			Object response = makeRequest(new Deposit(number, amount));
 
 			if (response instanceof InactiveException) {
 				throw (InactiveException) response;
@@ -281,24 +177,8 @@ public class WebDriver implements BankDriver {
 
 		@Override
 		public void withdraw(double amount) throws InactiveException, OverdrawException {
-			try{
-				oos = new ObjectOutputStream(urlCon.getOutputStream());
-				System.out.println("OutputStream Client");
-				ois = new ObjectInputStream(urlCon.getInputStream());
-				System.out.println("InputStream Client");
-				} catch(IOException e){
-					
-				}
-			if (amount < 0)
-				return;
 
-			Object response = null;
-			try {
-				oos.writeObject(new Withdraw(number, amount));
-				response = ois.readObject();
-			} catch (IOException | ClassNotFoundException ex) {
-
-			}
+			Object response = makeRequest(new Withdraw(number, amount));
 
 			if (response instanceof InactiveException) {
 				throw (InactiveException) response;

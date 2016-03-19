@@ -1,9 +1,11 @@
 package http;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
 import java.util.concurrent.Executors;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -34,7 +36,7 @@ public class WebServer {
         Driver driver = new Driver();
         driver.connect(null);
         Bank bank = driver.getBank();
-		
+
 		HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 		server.createContext("/bank", new MyHandler(bank));
 		server.setExecutor(Executors.newCachedThreadPool());
@@ -48,7 +50,7 @@ public class WebServer {
 		Bank bank;
 		ObjectOutputStream oos;
         ObjectInputStream ois;
-		
+
 		public MyHandler(Bank b){
 			this.bank = b;
 		}
@@ -57,13 +59,8 @@ public class WebServer {
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
 
-		    String respHeader = "Hello bank!\n";
-		    exchange.sendResponseHeaders(200, respHeader.length());
-			
             ois = new ObjectInputStream(exchange.getRequestBody());
 			System.out.println("Opened Handler inputstream");
-			oos = new ObjectOutputStream(exchange.getResponseBody());
-			System.out.println("Opened Handler outputstream");
 
 
             Object request;
@@ -81,7 +78,8 @@ public class WebServer {
 				            response = bank.closeAccount(accountNumber);
 				        }else if(request instanceof GetAccountNumbers){
 				            response = bank.getAccountNumbers();
-				        }else if(request instanceof GetAccount){
+							System.out.println(response.toString());
+						}else if(request instanceof GetAccount){
 				            String accountNumber = ((GetAccount) request).accountNumber;
 				            response = bank.getAccount(accountNumber);
 				        }else if(request instanceof Transfer){
@@ -91,10 +89,8 @@ public class WebServer {
 				            try {
 				                bank.transfer(from, to, transfer.amount);
 				                response = true;
-				            } catch (InactiveException e) {
-				                response = new InactiveException();
-				            } catch (OverdrawException e) {
-				                response = new OverdrawException();
+				            } catch (IllegalArgumentException | InactiveException | OverdrawException e) {
+								response = e;
 				            }
 				        }else if(request instanceof GetBalance){
 				            String accountNumber = ((GetBalance) request).accountNumber;
@@ -124,8 +120,24 @@ public class WebServer {
 				                response = new InactiveException();
 				            }
 				        }
-				        oos.writeObject(response);
-				        if(response != null) System.out.println("<= " + response.toString());
+						try{
+							// TODO get size of response object somehow???
+							// calculate content length
+							ByteArrayOutputStream bos = new ByteArrayOutputStream();
+							ObjectOutputStream os = new ObjectOutputStream(bos);
+							os.writeObject(response);
+							os.flush();
+							os.close();
+							long size = bos.toByteArray().length;
+
+							// send response
+							exchange.sendResponseHeaders(200, size);
+							oos = new ObjectOutputStream(exchange.getResponseBody());
+							oos.writeObject(response);
+						}catch (IOException e){
+							e.printStackTrace();
+						}
+
 				    }
 				}
 			} catch (ClassNotFoundException | IllegalArgumentException e) {
