@@ -17,6 +17,14 @@ public class Client {
 		
 		BankWebservice web = service.getPort(BankWebservice.class);
 		
+		System.out.println(web.createAccount("Kevin1"));
+		System.out.println(web.createAccount("Kevin2"));
+		web.deposit("0", 100);
+		System.out.println(web.getBalance("0"));
+		web.withdraw("0", 50);
+		System.out.println(web.getBalance("0"));
+
+		
 		System.out.println("connected...");
 
 	}
