@@ -9,9 +9,9 @@ public class Client {
 	
 	
 	public static void main(String[] args) throws Exception {
-		URL url = new URL("http://localhost:9876/bank/jaxws?wsdl");
+		URL url = new URL("http://localhost:9876/soap?wsdl");
 		
-		QName qname = new QName("http://service.jaxws/","BankWebserviceImplService");
+		QName qname = new QName("http://soap/","BankWebserviceImplService");
 		
 		Service service = Service.create(url, qname);
 		

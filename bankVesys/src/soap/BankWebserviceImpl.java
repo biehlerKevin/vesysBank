@@ -9,7 +9,7 @@ import bank.InactiveException;
 import bank.OverdrawException;
 
 
-@WebService(endpointInterface = "jaxws.service.Webservices")
+@WebService(endpointInterface = "soap.BankWebservice")
 public class BankWebserviceImpl implements BankWebservice{
 	
 	private MyBank bank;
