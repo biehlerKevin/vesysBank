@@ -10,7 +10,6 @@ import bank.InactiveException;
 import bank.OverdrawException;
 
 @WebService
-@SOAPBinding(style = Style.RPC)
 
 public interface BankWebservice {
 	

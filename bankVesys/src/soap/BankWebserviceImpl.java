@@ -20,7 +20,6 @@ public class BankWebserviceImpl implements BankWebservice{
 
 	@Override
 	public String createAccount(String owner) {
-		// TODO Auto-generated method stub
 		return this.bank.createAccount(owner);
 	}
 
