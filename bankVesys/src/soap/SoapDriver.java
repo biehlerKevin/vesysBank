@@ -21,6 +21,7 @@ public class SoapDriver implements BankDriver {
 
 	@Override
 	public void connect(String[] args) throws IOException {
+		
 		URL url = new URL("http://localhost:9876/soap?wsdl");
 
 		QName qname = new QName("http://soap/", "BankWebserviceImplService");
@@ -37,8 +38,6 @@ public class SoapDriver implements BankDriver {
 
 	@Override
 	public void disconnect() throws IOException {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -71,13 +70,13 @@ public class SoapDriver implements BankDriver {
 
 		@Override
 		public bank.Account getAccount(String number) throws IOException {
-			bank.Account r;
+			bank.Account res;
 			if (service.getAccount(number).equals("")) {
-				System.out.println("null");
-				r = null;
+				System.out.println("Account not existing");
+				res = null;
 			} else
-				r = new SoapAccount(number, service);
-			return r;
+				res = new SoapAccount(number, service);
+			return res;
 		}
 
 		@Override
