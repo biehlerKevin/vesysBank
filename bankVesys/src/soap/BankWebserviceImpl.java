@@ -64,19 +64,25 @@ public class BankWebserviceImpl implements BankWebservice{
 	@Override
 	public String getOwner(String number) throws IOException {
 		bank.Account acc = this.bank.getAccount(number);
-		if (acc != null) return acc.getOwner();
-		else return "";
+		if (acc != null) 
+			return acc.getOwner();
+		else 
+			return "";
 	}
 
 	@Override
 	public double getBalance(String number) throws IOException, MyIllegalArgumentException {
-		if (this.bank.getAccount(number) == null) throw new MyIllegalArgumentException();
+		if (this.bank.getAccount(number) == null) 
+			throw new MyIllegalArgumentException();
+		
 		return this.bank.getAccount(number).getBalance();
 	}
 
 	@Override
 	public boolean isActive(String number) throws IOException, MyIllegalArgumentException {
-		if (this.bank.getAccount(number) == null) throw new MyIllegalArgumentException();
+		if (this.bank.getAccount(number) == null) 
+			throw new MyIllegalArgumentException();
+		
 		return this.bank.getAccount(number).isActive();
 	}
 
@@ -87,9 +93,10 @@ public class BankWebserviceImpl implements BankWebservice{
 
 	@Override
 	public String getAccount(String number) {
-		if (bank.getAccount(number) != null) return number;
+		if (bank.getAccount(number) != null) 
+			return number;
 		else {
-			System.out.println("Account does not exist!");
+			System.out.println("Account no existing");
 			return "";
 		}
 	}
