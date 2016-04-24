@@ -7,7 +7,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 /**
  * Created by mfrey on 15/04/2016.
  *
- * binds a single driver for all requests
+ * binds a "singleton" for all requests
  */
 public class MyApplicationsBinder extends AbstractBinder {
     @Override

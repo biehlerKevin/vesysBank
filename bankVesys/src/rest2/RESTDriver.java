@@ -1,7 +1,4 @@
-package rest2;/*
- * Copyright (c) 2000-2016 Fachhochschule Nordwestschweiz (FHNW)
- * All Rights Reserved. 
- */
+package rest2;
 
 import bank.InactiveException;
 import bank.OverdrawException;
@@ -101,7 +98,7 @@ public class RESTDriver implements bank.BankDriver {
 
 			if(amount < 0) throw new IllegalArgumentException();
 
-			Invocation.Builder invocationBuilder = webTarget.path(from.getNumber()).path(to.getNumber()).request();
+			Invocation.Builder invocationBuilder = webTarget.path(from.getNumber()).path("transfer").path(to.getNumber()).request();
 			Response response = invocationBuilder.post(Entity.text(amount));
 			int code = response.getStatus();
 			switch (code){
@@ -151,8 +148,8 @@ public class RESTDriver implements bank.BankDriver {
 		public void deposit(double amount) throws InactiveException {
 			if(amount < 0) return;
 
-			Invocation.Builder invocationBuilder = webTarget.path(number).request();
-			Response response = invocationBuilder.put(Entity.text(String.valueOf(amount)));
+			Invocation.Builder invocationBuilder = webTarget.path(number).path("deposit").request();
+			Response response = invocationBuilder.post(Entity.text(String.valueOf(amount)));
 
 			if(response.getStatus() == 410) throw new InactiveException();
 		}
@@ -161,8 +158,8 @@ public class RESTDriver implements bank.BankDriver {
 		public void withdraw(double amount) throws InactiveException, OverdrawException {
 			if(amount < 0) return;
 
-			Invocation.Builder invocationBuilder = webTarget.path(number).request();
-			Response response = invocationBuilder.put(Entity.text("-" + String.valueOf(amount)));
+			Invocation.Builder invocationBuilder = webTarget.path(number).path("withdraw").request();
+			Response response = invocationBuilder.post(Entity.text(String.valueOf(amount)));
 
 			switch (response.getStatus()){
 				case 401:

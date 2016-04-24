@@ -52,30 +52,6 @@ public class AccountsResource {
         return Response.ok(obj.toJSONString()).build();
     }
 
-    @PUT
-    @Path("{id}")
-    @Produces("text/plain")
-    public Response setAccountBalance(@PathParam("id") String id, String amount) throws IOException {
-        Account account = driver.getBank().getAccount(id);
-        if(account == null) return Response.status(404).build();
-
-        try {
-            double val = Double.parseDouble(amount);
-            if(val < 0){
-                val = Math.abs(val);
-                account.withdraw(val);
-            }else{
-                account.deposit(val);
-            }
-            return Response.ok().build();
-
-        } catch (OverdrawException e) {
-            return Response.status(401).build();
-        } catch (InactiveException e) {
-            return Response.status(410).build();
-        }
-    }
-
     @DELETE
     @Path("{id}")
     @Produces("text/plain")
@@ -96,23 +72,62 @@ public class AccountsResource {
     @Produces("text/plain")
     public Response isAccountActive(@PathParam("id") String id) throws IOException {
         Account account = driver.getBank().getAccount(id);
+
+        // the account was not found
         if(account == null) return Response.status(404).build();
 
         if(driver.getBank().getAccount(id).isActive()){
             return Response.ok().build();
         }else{
+            // account gone
             return Response.status(410).build();
         }
     }
 
     @POST
-    @Path("{from}/{to}")
+    @Path("{id}/deposit")
+    @Consumes("text/plain")
+    @Produces("text/plain")
+    public Response deposit(@PathParam("id") String id, String amount) throws IOException {
+        Account account = driver.getBank().getAccount(id);
+        if(account == null) return Response.status(404).build();
+
+        try {
+            account.deposit(Double.parseDouble(amount));
+            return Response.ok().build();
+
+        } catch (InactiveException e) {
+            return Response.status(410).build();
+        }
+    }
+
+    @POST
+    @Path("{id}/withdraw")
+    @Consumes("text/plain")
+    @Produces("text/plain")
+    public Response withdraw(@PathParam("id") String id, String amount) throws IOException {
+        Account account = driver.getBank().getAccount(id);
+        if(account == null) return Response.status(404).build();
+
+        try {
+            account.withdraw(Double.parseDouble(amount));
+            return Response.ok().build();
+
+        } catch (OverdrawException e) {
+            return Response.status(401).build();
+        } catch (InactiveException e) {
+            return Response.status(410).build();
+        }
+    }
+
+    @POST
+    @Path("{from}/transfer/{to}")
+    @Consumes("text/plain")
     @Produces("text/plain")
     public Response transfer(@PathParam("from") String from, @PathParam("to") String to, String amount) throws IOException {
         Account fromAccount = driver.getBank().getAccount(from);
         Account toAccount = driver.getBank().getAccount(to);
         if(fromAccount == null || toAccount == null) return Response.status(404).build();
-        if(!(fromAccount.isActive() && toAccount.isActive()));
 
         try {
             double val = Double.parseDouble(amount);
