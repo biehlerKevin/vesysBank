@@ -34,7 +34,7 @@ public class Driver implements bank.BankDriver {
 		return bank;
 	}
 
-	static class Bank implements bank.Bank {
+	public static class Bank implements bank.Bank {
 
 		private final Map<String, Account> accounts = new HashMap<>();
 		private int numberOfAccounts = 0;
